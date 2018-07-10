@@ -10,6 +10,76 @@ import gzip
 from main.version import __version__
 
 
+def create_gff2_lines(transcript, gff2_lines):
+
+    if transcript.chrom not in gff2_lines:
+        gff2_lines[transcript.chrom] = []
+
+    '''
+    gff2_lines[transcript.chrom].append(
+        [
+            'chr' + transcript.chrom,
+            '.',
+            'transcript',
+            transcript.start + 1,
+            transcript.end,
+            '.',
+            transcript.strand,
+            '.',
+            'Transcript {}; HGNC {}; GENE {}'.format(transcript.id, transcript.hgnc_id, transcript.gene_symbol)
+        ]
+    )
+    '''
+
+    # Exons
+    for i in range(len(transcript.exons)):
+        exon = transcript.exons[i]
+        gff2_lines[transcript.chrom].append(
+            [
+                'chr' + transcript.chrom,
+                '.',
+                'exon',
+                exon.start + 1,
+                exon.end,
+                '.',
+                transcript.strand,
+                '.',
+                '{}'.format(transcript.id)
+            ]
+        )
+
+    # CDS
+    cds_regs = transcript.cds_regions()
+    cdspos = 0
+    for i in range(len(cds_regs)):
+        cds_reg = cds_regs[i]
+
+        if cdspos % 3 == 0:
+            phase = 0
+        elif cdspos % 3 == 1:
+            phase = 2
+        else:
+            phase = 1
+
+        gff2_lines[transcript.chrom].append(
+            [
+                'chr' + transcript.chrom,
+                '.',
+                'CDS',
+                cds_reg[0] + 1,
+                cds_reg[1],
+                '.',
+                transcript.strand,
+                str(phase),
+                '{}'.format(transcript.id)
+            ]
+        )
+
+        cdspos += cds_reg[1] - cds_reg[0]
+
+    return gff2_lines
+
+
 def create_gff3_lines(transcript, gff3_lines):
 
     if transcript.chrom not in gff3_lines:
@@ -66,6 +136,27 @@ def output_gff3(gff3_lines, fn):
     pysam.tabix_index(fn + '.gz', seq_col=0, start_col=3, end_col=4, meta_char='#', force=True)
 
     os.remove(fn + '_tmp')
+
+
+def output_gff2(gff2_lines, fn):
+
+    out = open(fn + '_tmp', 'w')
+    out.write('##gff-version 2\n')
+    for c in map(str,range(1, 23))+['X', 'Y', 'MT']:
+        if c not in gff2_lines:
+            continue
+        gff2_lines[c] = sorted(gff2_lines[c], key=itemgetter(3, 4))
+
+        for x in gff2_lines[c]:
+            x = map(str, x)
+            out.write('\t'.join(x)+'\n')
+    out.close()
+
+    pysam.tabix_compress(fn + '_tmp', fn + '.gz', force=True)
+    pysam.tabix_index(fn + '.gz', seq_col=0, start_col=3, end_col=4, meta_char='#', force=True)
+
+    os.remove(fn + '_tmp')
+
 
 
 def output_genepred(transcript, outfile):
@@ -448,7 +539,8 @@ def print_summary_info(options, missing_list):
 
     print '\nOutput files:'
     print ' - CAVA database: {}_cava.gz (+.tbi)'.format(options.series)
-    print ' - GFF3 file: {}.gff.gz (+.tbi)'.format(options.series)
+    print ' - GFF2 file: {}.gff2.gz (+.tbi)'.format(options.series)
+    print ' - GFF3 file: {}.gff3.gz (+.tbi)'.format(options.series)
     print ' - GenePred file: {}.gp'.format(options.series)
     print ' - FASTA file: {}.fa (+.fai)'.format(options.series)
     if options.annovar:

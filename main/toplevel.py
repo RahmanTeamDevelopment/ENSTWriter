@@ -44,6 +44,7 @@ def run(options):
 
     # Iterate through input records
     missing_list = []
+    gff2_lines = {}
     gff3_lines = {}
     for line in open(options.input):
         line = line.strip()
@@ -85,7 +86,8 @@ def run(options):
         # Add transcript to database writer
         tdb_writer.add(transcript)
 
-        # Create content of gff3 file
+        # Create content of gff2 and gff3 files
+        gff2_lines = helper.create_gff2_lines(transcript, gff2_lines)
         gff3_lines = helper.create_gff3_lines(transcript, gff3_lines)
 
         # Write to gp file
@@ -103,8 +105,10 @@ def run(options):
             helper.output_genepred(transcript, out_genepred_annovar)
             helper.output_fasta_annovar(transcript, out_fasta_annovar, ref)
 
-    # Create bgzipped, Tabix-index GFF3 output
-    helper.output_gff3(gff3_lines, options.series + '.gff')
+
+    # Create bgzipped, Tabix-index GFF2 and GFF3 output
+    helper.output_gff2(gff2_lines, options.series + '.gff2')
+    helper.output_gff3(gff3_lines, options.series + '.gff3')
 
     # Finalize outputs
     helper.finalize_outputs(
