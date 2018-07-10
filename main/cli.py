@@ -38,6 +38,14 @@ def start_cli():
     )
 
     parser.add_option(
+        '--output',
+        default='output',
+        dest='output',
+        action='store',
+        help="Output file name prefix [default value: %default]"
+    )
+
+    parser.add_option(
         '--gbk',
         default=False,
         dest='gbk',

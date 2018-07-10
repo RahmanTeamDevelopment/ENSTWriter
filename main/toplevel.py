@@ -107,8 +107,8 @@ def run(options):
 
 
     # Create bgzipped, Tabix-index GFF2 and GFF3 output
-    helper.output_gff2(gff2_lines, options.series + '.gff2')
-    helper.output_gff3(gff3_lines, options.series + '.gff3')
+    helper.output_gff2(gff2_lines, options.output + '.gff2')
+    helper.output_gff3(gff3_lines, options.output + '.gff3')
 
     # Finalize outputs
     helper.finalize_outputs(

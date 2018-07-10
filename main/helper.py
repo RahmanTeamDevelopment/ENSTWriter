@@ -463,18 +463,18 @@ def number_of_input_carts(fn):
 
 def initialize_output_files(options):
 
-    out_genepred = open(options.series + '.gp', 'w')
-    out_fasta = open(options.series + '.fa', 'w')
+    out_genepred = open(options.output + '.gp', 'w')
+    out_fasta = open(options.output + '.fa', 'w')
 
     # Initializing output files required by Annovar
     if options.annovar:
-        out_genepred_annovar = open('{}_refGene.txt'.format(options.series), 'w')
-        out_fasta_annovar = open('{}_refGeneMrna.fa'.format(options.series), 'w')
+        out_genepred_annovar = open('{}_refGene.txt'.format(options.output), 'w')
+        out_fasta_annovar = open('{}_refGeneMrna.fa'.format(options.output), 'w')
     else:
         out_genepred_annovar = out_fasta_annovar = None
 
     # Initializing GBK ourput
-    gbk_dir = '{}_gbk'.format(options.series)
+    gbk_dir = '{}_gbk'.format(options.output)
     if options.gbk:
         if os.path.exists(gbk_dir):
             shutil.rmtree(gbk_dir)
@@ -489,17 +489,17 @@ def finalize_outputs(options, tdb_writer, out_fasta, out_genepred, out_genepred_
 
     out_fasta.close()
 
-    pysam.faidx(options.series + '.fa')
+    pysam.faidx(options.output + '.fa')
 
     out_genepred.close()
 
     if options.annovar:
         out_genepred_annovar.close()
         out_fasta_annovar.close()
-        pysam.faidx('{}_refGeneMrna.fa'.format(options.series))
+        pysam.faidx('{}_refGeneMrna.fa'.format(options.output))
 
     if options.gbk:
-        shutil.make_archive('{}_gbk'.format(options.series), "zip", './', gbk_dir)
+        shutil.make_archive('{}_gbk'.format(options.output), "zip", './', gbk_dir)
         shutil.rmtree(gbk_dir)
 
 
@@ -520,7 +520,7 @@ def initialize_transcript_db_writer(options):
         'CDNA_CODING_START'
     ]
     tdb_writer = transcripts.TranscriptDBWriter(
-        options.series + '_cava',
+        options.output + '_cava',
         source='CARTWriter ' + __version__,
         build='GRCh37',
         columns=columns
@@ -538,16 +538,16 @@ def print_summary_info(options, missing_list):
             print '  - ' + x
 
     print '\nOutput files:'
-    print ' - CAVA database: {}_cava.gz (+.tbi)'.format(options.series)
-    print ' - GFF2 file: {}.gff2.gz (+.tbi)'.format(options.series)
-    print ' - GFF3 file: {}.gff3.gz (+.tbi)'.format(options.series)
-    print ' - GenePred file: {}.gp'.format(options.series)
-    print ' - FASTA file: {}.fa (+.fai)'.format(options.series)
+    print ' - CAVA database: {}_cava.gz (+.tbi)'.format(options.output)
+    print ' - GFF2 file: {}.gff2.gz (+.tbi)'.format(options.output)
+    print ' - GFF3 file: {}.gff3.gz (+.tbi)'.format(options.output)
+    print ' - GenePred file: {}.gp'.format(options.output)
+    print ' - FASTA file: {}.fa (+.fai)'.format(options.output)
     if options.annovar:
-        print ' - Annovar GenePred file: {}'.format('{}_refGene.txt'.format(options.series))
-        print ' - Annovar FASTA file: {} (+.fai)'.format('{}_refGeneMrna.fa'.format(options.series))
+        print ' - Annovar GenePred file: {}'.format('{}_refGene.txt'.format(options.output))
+        print ' - Annovar FASTA file: {} (+.fai)'.format('{}_refGeneMrna.fa'.format(options.output))
     if options.gbk:
-        print ' - GenBank (GBK) files: {}_gbk.zip'.format(options.series)
+        print ' - GenBank (GBK) files: {}_gbk.zip'.format(options.output)
 
     if len(missing_list) > 0:
         print '\nWarning! {} CARTs were missing! (see list above)'.format(len(missing_list))
